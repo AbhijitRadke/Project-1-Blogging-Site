@@ -72,7 +72,7 @@ const login = async function (req, res) {
                 return res.status(200).send({ status: true, token: token })
             }
             else {
-                return res.status(500).send({ status: false, msg: "invalid credentials" })
+                return res.status(400).send({ status: false, msg: "invalid credentials" })
             }
         }
     }
