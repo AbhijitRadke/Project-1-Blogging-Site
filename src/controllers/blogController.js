@@ -2,6 +2,7 @@ const blogModel = require("../models/blogModel")
 const Valid = require("../validator/validator")
 const { isValidObjectId } = require("mongoose")
 const authorModel = require("../models/authorModel")
+const jwt = require("jsonwebtoken")
 
 
 
@@ -85,6 +86,7 @@ const blogDetails = async function (req, res) {
             if (subCategory) {
                 obj.subCategory = subCategory
             }
+
             obj.isDeleted = false
             obj.isPublished = true
 
@@ -153,85 +155,63 @@ const deleteBlog = async (req, res) => {
 
 
 
-// ***************delete by query paramas *********************8
-
-// const deleteByQuery = async function (req, res) {
-//     try {
-//         const data = req.query
-//         // const { isPublished } = data
-//         if (Object.keys(data).length == 0) {
-//             return res.status(400).send({ status: false, msg: "no data is provided" })
-//         }
-//         // if (isPublished == true) {
-//         //     return res.status(400).send({ status: false, msg: "blog is published" })
-//         // }
-
-//         const deletedBlogs = await blogModel.updateMany(data, { isDeleted: true, deletedAt: new Date() }, { new: true })
-//         console.log(deleteBlog)
-//         if (!deletedBlogs) {
-//             return res.status(404).send({ status: false, msg: "blog not found" })
-//         }
-//         return res.status(200).send({ status: true, msg: deletedBlogs })
-//     }
-//     catch (error) {
-//         return res.status(500).send({ status: false, msg: error.message })
-//     }
-// }
-
-// const deleteByQuery = async function (req, res) {
-//     try {
-//         let queryData = (req.query.category || req.query.authorId || req.query.tags || req.query.subCategory)
-//         console.log(queryData)
-//         if (!queryData) {
-//             return res.status(404).send({ status: false, msg: "You can only Delete blog  by category, authorid, tag name, subcategory name,or unpublished  blog" })
-//         } else {
-
-//             let authorId = req.query.authorId
-//             let category = req.query.category
-//             let tags = req.query.tags
-//             let subCategory = req.query.subCategory
-//             let isPublished = req.query.isPublished
-
-//             let obj = {};
-//             if (authorId) {
-//                 obj.authorId = authorId;
-//             }
-//             if (category) {
-//                 obj.category = category
-//             }
-
-//             if (tags) {
-//                 obj.tags = tags
-//             }
-//             if (subCategory) {
-//                 obj.subcategory = subCategory
-//             }
-//             if (isPublished) {
-//                 obj.isPublished = isPublished
-//             }
 
 
-//             let data = await blogModel.findOne(obj);
+const deleteByQuery = async function (req, res) {
+    try {
 
-//             if (!data) {
-//                 return res.status(404).send({ status: false, msg: "The given data is Invalid or blog is already deleted" });
-//             }
+        console.log(req.query)
 
+        let { authorId, tags, category, subCategory, isPublished } = req.query
+        let obj = {}
+        // ---------Authorisation
+        if (authorId) {
+            obj.authorId = authorId
+        }
+        else {
+            return res.status(400).send({ status: false, msg: "authorId is must be required for authorasition" })
+        }
+        let token = req.headers["x-api-key"];
+        let decodedToken = jwt.verify(token, "nasa");
+        if (authorId != decodedToken.authorId) {
+            return res.status(403).send({ status: false, msg: 'User is not allowed to modify the blog data' });
+        }
 
-//             await blogModel.updateOne({ data }, { isDeleted: true, deletedAt: Date.now() }, { new: true })
-//             return res.status(200).send({ status: true, msg: "Blog Deleted succesfully", })
-//         }
-//     }
+        //------------- 
+        if (tags) {
+            obj.tags = tags
+        }
 
+        if (category) {
+            obj.category = category
+        }
 
-//     catch (error) {
-//         return res.status(500).send({ message: "Failed", error: error.message });
-//     }
-// }
+        if (subCategory) {
+            obj.subCategory = subCategory
+        }
+        if (isPublished) {
+            obj.isPublished = isPublished
+        }
 
+        if (Object.keys(obj) == 0) {
 
+            return res.status(400).send({ status: true, msg: "bad request/ No Data found in queryParams" })
+        }
 
+        const getDetail = await blogModel.updateMany({ $and: [obj] }, { $set: { isDeleted: true, deletedAt: new Date() } })
+        if (!getDetail) {
+            return res.status(400).send({ status: false, msg: "given data is invalid " })
+        }
+        else {
+            return res.status(200).send({ status: true, data: getDetail })
+        }
 
+    }
+
+    catch (err) {
+        return res.status(500).send({ status: false, msg: err.message })
+    }
+}
 
 
 
