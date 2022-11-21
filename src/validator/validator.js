@@ -10,8 +10,13 @@ const isValid = function (value) {
 const isValidName = function (abc) {
     if (typeof abc === 'undefined' || abc === null) return false;
     if (typeof abc === 'string' && abc.trim().length === 0) return false
-    const regex = /^[a-zA-Z]{3,13}$/;
+    const regex = /^[a-zA-Z]{3,16}$/;
     return regex.test(String(abc));
+}
+
+const checkPassword = function (str) {
+    var re = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,15}$/;
+    return re.test(str);
 }
 
 
@@ -21,4 +26,4 @@ function isValidEmail(email) {
     return re.test(String(email).toLowerCase());
 }
 
-module.exports = { isValid, isValidEmail, isValidRequestBody, isValidName }
+module.exports = { isValid, isValidEmail, isValidRequestBody, isValidName, checkPassword }

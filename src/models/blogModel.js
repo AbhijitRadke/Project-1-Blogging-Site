@@ -5,7 +5,8 @@ const blogSchema = new mongoose.Schema(
     {
         title: {
             type: String,
-            required: true
+            required: true,
+            trim: true
 
         },
         body: {
@@ -19,19 +20,18 @@ const blogSchema = new mongoose.Schema(
 
         },
         tags: {
-            type:[String],
-         },
+            type: [String],
+        },
 
         category: {
             type: String,
             required: true
         },
-        subcategory: 
-            {
-                type: [String]
+        subcategory: {
+            type: [String]
 
-            },
-        
+        },
+
         isPublished: {
             type: Boolean,
             default: false,

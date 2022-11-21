@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken")
 let createAuthor = async function (req, res) {
     let Data = req.body
     const { fname, lname, title, email, password } = Data
-    const isEmailAlreadyused = await authorModel.findOne({ email: email })
+
 
     try {
 
@@ -15,36 +15,48 @@ let createAuthor = async function (req, res) {
             return res.status(400).send({ status: false, msg: " Pls Provide Authordata" })
         }
 
-        // if (objKey === 0) { return res.satus(400).send({ status: false, msg: "No Data in requestBody" }) }
 
         //----------------------- validation-------------------------------
 
-        if (!valid.isValidName(fname)) { return res.status(400).send({ status: false, msg: "fname is required" }) }
+        if (!valid.isValidName(fname)) { return res.status(400).send({ status: false, msg: "fname is Invalide/not present" }) }
 
-        else if (!valid.isValidName(lname)) { return res.status(400).send({ status: false, msg: "Lname is required" }) }
+        if (!valid.isValidName(lname)) { return res.status(400).send({ status: false, msg: "fname is Invalide/not present" }) }
 
-        else if (!valid.isValid(title)) { return res.status(400).send({ status: false, msg: "Title is required" }) }
+        if (!valid.isValid(title)) { return res.status(400).send({ status: false, msg: "Title is required" }) }
 
-        else if (!valid.isValid(email)) { return res.satus.send({ status: false, msg: "Email is required" }) }
+        if (title) {
+            if ((!["Mr", "Mrs", "Miss"].includes(title.trim()))) { return res.status(400).send({ status: false, msg: "Title is Not valied, it must be Mr/Mrs/Miss" }) }
+        }
 
-        else if (!valid.isValid(password)) { return res.satus.send({ status: false, msg: "Password is required" }) }
+        if (!valid.isValid(email)) { return res.status(400).send({ status: false, msg: "Email is required" }) }
+
+        if (!valid.isValid(password)) { return res.status(400).send({ status: false, msg: "Password is required" }) }
+
+        if (!valid.checkPassword(password)) { return res.status(400).send({ status: false, msg: "Passwords must be at least 8 characters in length with lowercase and uppercase laters and special cheractor " }) }
+
 
         //--------------------- Email validation --------------------------
 
-        else if (!valid.isValidEmail(email)) { return res.status(400).send({ status: false, msg: "Email is not vaild" }) }
+        if (!valid.isValidEmail(email)) { return res.status(400).send({ status: false, msg: "Email is not vaild" }) }
 
-
-        else if (isEmailAlreadyused) { return res.status(400).send({ status: false, msg: 'Email is already used' }) }
+        const isEmailAlreadyused = await authorModel.findOne({ email: email })
+        if (isEmailAlreadyused) { return res.status(400).send({ status: false, msg: 'Email is already used' }) }
 
         else {
             let createAuthor = await authorModel.create(Data)
-            res.status(201).send({ status: true, msg: createAuthor })
+            return res.status(201).send({ status: true, msg: createAuthor })
         }
     }
     catch (error) {
         res.status(500).send({ status: false, error: error.message })
     }
 }
+
+
+
+
+
+
 
 //    **************************login api *************************
 
@@ -77,7 +89,7 @@ const login = async function (req, res) {
         }
     }
     catch (err) {
-        return res.status(500).send({ status: false, msg: err.msg })
+        return res.status(500).send({ status: false, msg: err.massage })
     }
 }
 

@@ -32,16 +32,16 @@ const Authentication = async (req, res, next) => {
 const Authorisation = async function (req, res, Next) {
 
     try {
-        
+
         const blogId = req.params.blogId
         console.log(req.params)
         if (!isValidObjectId(blogId)) return res.status(400).send({ status: false, msg: "blog Id is incurrct" })
 
-        let findAuthorId = await blogModel.findById(blogId).select({ authorId: 1,})
+        let findAuthorId = await blogModel.findById(blogId).select({ authorId: 1, })
 
         console.log(findAuthorId)
         if (!findAuthorId)
-            return res.status(404).send({ status: false, msg: "blog not found" })
+            return res.status(404).send({ status: false, msg: "Author not found" })
 
         let token = req.headers["x-api-key"];
         let decodedToken = jwt.verify(token, "nasa");
@@ -49,7 +49,7 @@ const Authorisation = async function (req, res, Next) {
         let userLoggedIn = decodedToken.authorId
 
         //authorId comparision to check if the logged-in user is requesting for their own data
-        if (findAuthorId.authorId != userLoggedIn) return res.status(403).send({ status: false, msg: 'User is not allowed to modify the blog data' });
+        if (findAuthorId.authorId != userLoggedIn) return res.status(403).send({ status: false, msg: '(User is Not Authorised )User is not allowed to modify the blog data' });
         Next()
     }
     catch (err) {
